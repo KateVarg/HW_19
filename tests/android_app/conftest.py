@@ -1,10 +1,10 @@
 import pytest
 from appium.options.android import UiAutomator2Options
+from appium import webdriver
 from selene import browser
 import os
 from dotenv import load_dotenv
 from hw_19.utils import attach
-import time
 
 
 @pytest.fixture(autouse=True)
@@ -39,21 +39,14 @@ def mobile_management():
         }
     })
 
-    browser.config.driver_remote_url = 'http://hub.browserstack.com/wd/hub'
-    browser.config.driver_options = options
+    browser.config.driver = webdriver.Remote('http://hub.browserstack.com/wd/hub', options=options)
 
     browser.config.timeout = float(os.getenv("TIMEOUT"))
 
-    browser.open()
+    yield
 
-    yield browser
-
-    time.sleep(5)
-    try:
-        attach.add_screenshot(browser)
-        attach.add_xml(browser)
-        attach.add_video(browser)
-    except Exception as e:
-        print(f"Error during teardown: {e}")
+    attach.add_screenshot(browser)
+    attach.add_xml(browser)
+    attach.add_video(browser)
 
     browser.quit()
